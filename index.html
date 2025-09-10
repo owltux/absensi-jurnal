@@ -3,63 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Absensi & Jurnal Kelas Pak Iyan</title>
-
+    <title>Absensi Kelas Digital</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="container">
-        <h1>Absensi & Jurnal Kelas Pak Iyan</h1>
-        
-        <form id="presensiForm">
-            <div class="form-group header-form">
-                <div class="form-control">
-                    <label for="pilihKelas">Pilih Kelas</label>
-                    <select id="pilihKelas" name="kelas" required>
-                        <option value="">-- Memuat kelas... --</option>
+    <div class="main-container">
+        <header>
+            <div class="header-title">
+                <span class="header-icon">📚</span>
+                <h1>Absensi Kelas 6 SD</h1>
+            </div>
+            <div class="header-date">
+                <input type="date" id="tanggal" name="tanggal">
+            </div>
+        </header>
+
+        <main>
+            <div class="controls-card">
+                <div id="info-hari-kelas">
+                    <span id="nama-hari">Hari Ini</span> - <span id="info-status">Pilih Jam Mengajar</span>
+                </div>
+                <div class="jadwal-selector">
+                    <select id="pilihJadwal">
+                        <option value="">-- Memuat jadwal... --</option>
                     </select>
                 </div>
-                <div class="form-control">
-                    <label for="tanggal">Pilih Tanggal</label>
-                    <input type="date" id="tanggal" name="tanggal" required>
-                </div>
-            </div>
-            <form id="presensiForm">
-        <div class="form-group header-form">
-        </div>
-
-        <div id="infoJadwal" style="display:none;"></div>
-            <div id="quickActions" style="display:none;">
-                <button type="button" class="action-btn" id="pilihSemuaHadir">Pilih Semua Hadir</button>
             </div>
 
-            <div id="loading">Pilih kelas untuk menampilkan daftar siswa.</div>
-            <div id="daftarSiswaContainer"></div>
-
-            <div id="jurnalSection" style="display:none;">
-                <hr>
-                <h2>Jurnal Pertemuan</h2>
-                <div class="form-group">
-                    <label for="refleksi">Refleksi Pertemuan Hari Ini</label>
-                    <textarea id="refleksi" rows="4" placeholder="Contoh: Materi tersampaikan dengan baik, namun beberapa siswa di baris belakang kurang fokus."></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="rencana">Rencana Pertemuan Selanjutnya</label>
-                    <textarea id="rencana" rows="4" placeholder="Contoh: Mengulas kembali materi sebelumnya dengan kuis singkat, lalu masuk ke bab baru."></textarea>
+            <div id="initial-view">
+                <div class="prompt-card">
+                    <div class="prompt-icon">⏰</div>
+                    <h2>Pilih Jam Mengajar</h2>
+                    <p>Silakan pilih jadwal mengajar terlebih dahulu untuk memulai absensi.</p>
                 </div>
             </div>
 
-            <button type="submit" id="submitBtn" style="display:none;">Kirim Absensi & Jurnal</button>
-        </form>
+            <div id="attendance-view" style="display: none;">
+                
+                <div class="action-buttons">
+                    <div class="left-actions">
+                        <button id="btnSemuaHadir" class="btn btn-action">✔️ Semua Hadir</button>
+                        <button id="btnReset" class="btn btn-action">🔄 Reset</button>
+                    </div>
+                    <div class="right-actions">
+                        <button id="btnSimpan" class="btn btn-primary">💾 Simpan Data</button>
+                        <button id="btnCetak" class="btn btn-secondary">🖨️ Cetak</button>
+                    </div>
+                </div>
 
-        <div id="pesanStatus"></div>
+                <div class="student-list-card">
+                    <table class="student-table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Nama Siswa</th>
+                                <th>Hadir</th>
+                                <th>Izin</th>
+                                <th>Sakit</th>
+                                <th>Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="student-list-body">
+                            </tbody>
+                    </table>
+                </div>
+
+                <div class="summary-section">
+                    <div class="card summary-card">
+                        <h3>Ringkasan Kehadiran</h3>
+                        <ul>
+                            <li><span class="icon">✅</span> Hadir <span class="count" id="count-hadir">0</span></li>
+                            <li><span class="icon">🟠</span> Izin <span class="count" id="count-izin">0</span></li>
+                            <li><span class="icon">🔴</span> Sakit <span class="count" id="count-sakit">0</span></li>
+                            <hr>
+                            <li><span class="icon">👥</span> Total Siswa <span class="count" id="count-total">0</span></li>
+                        </ul>
+                    </div>
+                    <div class="card reflection-card">
+                        <h3>Refleksi Guru</h3>
+                        <div class="form-group">
+                            <label for="kondisi-kelas">Kondisi Kelas</label>
+                            <select id="kondisi-kelas">
+                                <option value="">-- Pilih Kondisi --</option>
+                                <option value="Sangat Baik">😊 Sangat Baik</option>
+                                <option value="Baik">🙂 Baik</option>
+                                <option value="Cukup">😐 Cukup</option>
+                                <option value="Perlu Perhatian">🤔 Perlu Perhatian</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="catatan-pembelajaran">Catatan Pembelajaran</label>
+                            <textarea id="catatan-pembelajaran" rows="3" placeholder="Tulis catatan proses pembelajaran hari ini..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="tindak-lanjut">Tindak Lanjut</label>
+                            <textarea id="tindak-lanjut" rows="3" placeholder="Rencana tindak lanjut untuk pertemuan berikutnya..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer>
+            © 2024 Sistem Absensi Kelas - Dibuat dengan ❤️ untuk pendidikan
+        </footer>
     </div>
 
     <script src="script.js"></script>
-
 </body>
 </html>
