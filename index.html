@@ -1,5 +1,6 @@
-<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Absensi & Jurnal Kelas</title>
-    <head>
+<!DOCTYPE html>
+<html lang="id">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Absensi & Jurnal Kelas</title>
@@ -9,4 +10,52 @@
     
     <link rel="stylesheet" href="style.css">
 </head>
-    <link rel="stylesheet" href="style.css"></head><body><div class="container"><h1>Absensi & Jurnal Kelas</h1><form id="presensiForm"><div class="form-group header-form"><div class="form-control"><label for="pilihKelas">Pilih Kelas</label><select id="pilihKelas" name="kelas" required><option value="">-- Memuat kelas... --</option></select></div><div class="form-control"><label for="tanggal">Pilih Tanggal</label><input type="date" id="tanggal" name="tanggal" required></div></div><div id="quickActions" style="display:none;"><button type="button" class="action-btn" id="pilihSemuaHadir">Pilih Semua Hadir</button></div><div id="loading">Pilih kelas untuk menampilkan daftar siswa.</div><div id="daftarSiswaContainer"></div><div id="jurnalSection" style="display:none;"><hr><h2>Jurnal Pertemuan</h2><div class="form-group"><label for="refleksi">Refleksi Pertemuan Hari Ini</label><textarea id="refleksi" rows="4" placeholder="Contoh: Materi tersampaikan dengan baik, namun beberapa siswa di baris belakang kurang fokus."></textarea></div><div class="form-group"><label for="rencana">Rencana Pertemuan Selanjutnya</label><textarea id="rencana" rows="4" placeholder="Contoh: Mengulas kembali materi sebelumnya dengan kuis singkat, lalu masuk ke bab baru."></textarea></div></div><button type="submit" id="submitBtn" style="display:none;">Kirim Absensi & Jurnal</button></form><div id="pesanStatus"></div></div><script src="script.js"></script></body></html>
+<body>
+
+    <div class="container">
+        <h1>Absensi & Jurnal Kelas</h1>
+        
+        <form id="presensiForm">
+            <div class="form-group header-form">
+                <div class="form-control">
+                    <label for="pilihKelas">Pilih Kelas</label>
+                    <select id="pilihKelas" name="kelas" required>
+                        <option value="">-- Memuat kelas... --</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label for="tanggal">Pilih Tanggal</label>
+                    <input type="date" id="tanggal" name="tanggal" required>
+                </div>
+            </div>
+
+            <div id="quickActions" style="display:none;">
+                <button type="button" class="action-btn" id="pilihSemuaHadir">Pilih Semua Hadir</button>
+            </div>
+
+            <div id="loading">Pilih kelas untuk menampilkan daftar siswa.</div>
+            <div id="daftarSiswaContainer"></div>
+
+            <div id="jurnalSection" style="display:none;">
+                <hr>
+                <h2>Jurnal Pertemuan</h2>
+                <div class="form-group">
+                    <label for="refleksi">Refleksi Pertemuan Hari Ini</label>
+                    <textarea id="refleksi" rows="4" placeholder="Contoh: Materi tersampaikan dengan baik, namun beberapa siswa di baris belakang kurang fokus."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="rencana">Rencana Pertemuan Selanjutnya</label>
+                    <textarea id="rencana" rows="4" placeholder="Contoh: Mengulas kembali materi sebelumnya dengan kuis singkat, lalu masuk ke bab baru."></textarea>
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn" style="display:none;">Kirim Absensi & Jurnal</button>
+        </form>
+
+        <div id="pesanStatus"></div>
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
