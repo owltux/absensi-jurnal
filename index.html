@@ -11,10 +11,11 @@
 <body>
 
     <div class="main-container">
+        <!-- ====== HEADER UTAMA ====== -->
         <header>
             <div class="header-title">
                 <span class="header-icon">📚</span>
-                <h1>Absensi Kelas 6 SD</h1>
+                <h1>Absensi Kelas Digital</h1>
             </div>
             <a href="rekap.html" class="btn btn-secondary">📊 Lihat Rekap</a>
             <div class="header-date">
@@ -23,6 +24,7 @@
         </header>
 
         <main>
+            <!-- ====== KONTROL UTAMA (PILIH JADWAL) ====== -->
             <div class="controls-card">
                 <div id="info-hari-kelas">
                     <span id="nama-hari">Hari Ini</span> - <span id="info-status">Pilih Jam Mengajar</span>
@@ -34,22 +36,27 @@
                 </div>
             </div>
 
-    <div id="initial-view">
-    <div class="prompt-card">
-        <div id="loading-spinner" style="display: none;">
-            <div class="spinner"></div>
-            <p>Memuat daftar siswa...</p>
-        </div>
-        <div id="prompt-awal">
-            <div class="prompt-icon">⏰</div>
-            <h2>Pilih Jam Mengajar</h2>
-            <p>Silakan pilih jadwal mengajar terlebih dahulu untuk memulai absensi.</p>
-        </div>
-    </div>
-</div>
+            <!-- ====== TAMPILAN AWAL (SEBELUM JADWAL DIPILIH) ====== -->
+            <div id="initial-view">
+                <div class="prompt-card">
+                    <!-- Spinner akan muncul saat jadwal dipilih -->
+                    <div id="loading-spinner" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>Memuat daftar siswa...</p>
+                    </div>
+                    <!-- Tampilan prompt awal -->
+                    <div id="prompt-awal">
+                        <div class="prompt-icon">⏰</div>
+                        <h2>Pilih Jam Mengajar</h2>
+                        <p>Silakan pilih jadwal mengajar terlebih dahulu untuk memulai absensi.</p>
+                    </div>
+                </div>
+            </div>
 
+            <!-- ====== TAMPILAN ABSENSI (TERSEMBUNYI SECARA DEFAULT) ====== -->
             <div id="attendance-view" style="display: none;">
                 
+                <!-- Tombol Aksi -->
                 <div class="action-buttons">
                     <div class="left-actions">
                         <button id="btnSemuaHadir" class="btn btn-action">✔️ Semua Hadir</button>
@@ -61,6 +68,7 @@
                     </div>
                 </div>
 
+                <!-- Tabel Daftar Siswa -->
                 <div class="student-list-card">
                     <table class="student-table">
                         <thead>
@@ -74,11 +82,14 @@
                             </tr>
                         </thead>
                         <tbody id="student-list-body">
-                            </tbody>
+                            <!-- Daftar siswa akan diisi oleh JavaScript -->
+                        </tbody>
                     </table>
                 </div>
 
+                <!-- Ringkasan & Refleksi -->
                 <div class="summary-section">
+                    <!-- Kartu Ringkasan Kehadiran -->
                     <div class="card summary-card">
                         <h3>Ringkasan Kehadiran</h3>
                         <ul>
@@ -89,6 +100,7 @@
                             <li><span class="icon">👥</span> Total Siswa <span class="count" id="count-total">0</span></li>
                         </ul>
                     </div>
+                    <!-- Kartu Refleksi Guru -->
                     <div class="card reflection-card">
                         <h3>Refleksi Guru</h3>
                         <div class="form-group">
@@ -115,7 +127,7 @@
         </main>
         
         <footer>
-            © 2025 Sistem Absensi dan Jurnal Mengajar - Dibuat dengan ❤️ ZimplyCode
+            © 2025 Sistem Absensi dan Jurnal Mengajar
         </footer>
     </div>
 
