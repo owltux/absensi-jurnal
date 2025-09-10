@@ -6,17 +6,6 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzdt7494I3nRsPj3bS_
 
 
 // === 1. DEKLARASI ELEMEN DOM ===
-// ... (semua deklarasi const lainnya) ...
-const btnSimpan = document.getElementById('btnSimpan');
-const btnCetak = document.getElementById('btnCetak');
-
-// TAMBAHKAN DUA BARIS DI BAWAH INI
-const loadingSpinner = document.getElementById('loading-spinner');
-const promptAwal = document.getElementById('prompt-awal');
-
-
-let jadwalData = []; // Untuk menyimpan data jadwal dari Google Sheet
-// ... (sisa kode tetap sama) ...
 const tanggalInput = document.getElementById('tanggal');
 const jadwalSelect = document.getElementById('pilihJadwal');
 const infoHariKelas = document.getElementById('info-hari-kelas');
@@ -24,6 +13,10 @@ const namaHariSpan = document.getElementById('nama-hari');
 
 const initialView = document.getElementById('initial-view');
 const attendanceView = document.getElementById('attendance-view');
+
+// Elemen untuk spinner dan prompt
+const loadingSpinner = document.getElementById('loading-spinner');
+const promptAwal = document.getElementById('prompt-awal');
 
 const studentListBody = document.getElementById('student-list-body');
 const countHadir = document.getElementById('count-hadir');
@@ -49,11 +42,9 @@ let siswaData = [];  // Untuk menyimpan data siswa yang sedang ditampilkan
  * Fungsi ini berjalan saat halaman pertama kali dimuat.
  */
 async function init() {
-    // Set tanggal hari ini
     tanggalInput.valueAsDate = new Date();
     updateNamaHari();
 
-    // Ambil daftar jadwal dari Google Sheet
     try {
         const response = await fetch(`${SCRIPT_URL}?action=getJadwal`);
         const result = await response.json();
@@ -77,11 +68,9 @@ async function init() {
 /**
  * Fungsi yang dipanggil saat jadwal dipilih dari dropdown.
  */
-// GANTI DENGAN KODE INI
 async function handleJadwalChange() {
     const selectedJadwalId = jadwalSelect.value;
     if (!selectedJadwalId) {
-        // Jika tidak ada jadwal dipilih, tampilkan prompt awal
         promptAwal.style.display = 'block';
         loadingSpinner.style.display = 'none';
         initialView.style.display = 'block';
@@ -92,20 +81,14 @@ async function handleJadwalChange() {
     const selectedJadwal = jadwalData.find(j => j.id === selectedJadwalId);
     if (!selectedJadwal) return;
 
-    // Tampilkan loading spinner dan sembunyikan prompt awal
+    // Tampilkan loading spinner
     promptAwal.style.display = 'none';
     loadingSpinner.style.display = 'block';
-    initialView.style.display = 'block'; // Pastikan kartu prompt tetap terlihat untuk spinner
+    initialView.style.display = 'block';
     attendanceView.style.display = 'none';
 
-    // ... sisa fungsi Anda dari sini ke bawah tetap sama ...
-    // ... (mulai dari baris: infoHariKelas.innerHTML = ...)
-}
-
-    // Update info header
     infoHariKelas.innerHTML = `<span id="nama-hari">${getNamaHari(tanggalInput.value)}</span> - ✨ <span id="info-status">${selectedJadwal.kelas}</span>`;
 
-    // Ambil daftar siswa
     try {
         const response = await fetch(`${SCRIPT_URL}?action=getSiswa&kelas=${encodeURIComponent(selectedJadwal.kelas)}`);
         const result = await response.json();
@@ -113,14 +96,16 @@ async function handleJadwalChange() {
         if (result.status === "sukses") {
             siswaData = result.data;
             tampilkanSiswa(siswaData);
-            attendanceView.style.display = 'block'; 
-            initialView.style.display = 'none'; // Tampilkan setelah semua siap
+            attendanceView.style.display = 'block';
+            initialView.style.display = 'none'; // Sembunyikan kartu prompt setelah selesai
         } else {
             alert('Gagal mengambil data siswa.');
+            resetToInitialView(); // Kembalikan ke tampilan awal jika gagal
         }
     } catch (error) {
         console.error("Error fetching siswa:", error);
         alert('Terjadi kesalahan saat mengambil data siswa.');
+        resetToInitialView(); // Kembalikan ke tampilan awal jika error
     }
 }
 
@@ -128,7 +113,7 @@ async function handleJadwalChange() {
  * Menampilkan daftar siswa ke dalam tabel.
  */
 function tampilkanSiswa(siswaList) {
-    studentListBody.innerHTML = ''; // Kosongkan tabel
+    studentListBody.innerHTML = '';
     if (siswaList.length === 0) {
         studentListBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Tidak ada siswa di kelas ini.</td></tr>';
         return;
@@ -150,19 +135,23 @@ function tampilkanSiswa(siswaList) {
         studentListBody.appendChild(row);
     });
 
-    // Tambahkan event listener ke semua radio button yang baru dibuat
     document.querySelectorAll('input[type="radio"]').forEach(radio => {
         radio.addEventListener('change', updateRingkasan);
     });
 
-    updateRingkasan(); // Inisialisasi ringkasan
+    updateRingkasan();
 }
 
 // === 3. FUNGSI INTERAKTIF & PEMBANTU ===
 
-/**
- * Menghitung dan memperbarui ringkasan kehadiran.
- */
+function resetToInitialView(){
+    jadwalSelect.value = '';
+    promptAwal.style.display = 'block';
+    loadingSpinner.style.display = 'none';
+    initialView.style.display = 'block';
+    attendanceView.style.display = 'none';
+}
+
 function updateRingkasan() {
     let hadir = 0, izin = 0, sakit = 0;
     const totalSiswa = siswaData.length;
@@ -177,16 +166,12 @@ function updateRingkasan() {
             }
         }
     }
-
     countHadir.textContent = hadir;
     countIzin.textContent = izin;
     countSakit.textContent = sakit;
     countTotal.textContent = totalSiswa;
 }
 
-/**
- * Mengatur semua siswa menjadi "Hadir".
- */
 function aturSemuaHadir() {
     document.querySelectorAll('input[type="radio"][value="Hadir"]').forEach(radio => {
         radio.checked = true;
@@ -194,9 +179,6 @@ function aturSemuaHadir() {
     updateRingkasan();
 }
 
-/**
- * Mereset semua pilihan absensi.
- */
 function resetAbsensi() {
     document.querySelectorAll('input[type="radio"]').forEach(radio => {
         radio.checked = false;
@@ -207,9 +189,6 @@ function resetAbsensi() {
     updateRingkasan();
 }
 
-/**
- * Mengumpulkan semua data dan mengirimkannya ke Google Sheet.
- */
 async function simpanData() {
     btnSimpan.disabled = true;
     btnSimpan.textContent = 'Menyimpan...';
@@ -224,7 +203,7 @@ async function simpanData() {
         dataPresensi.push({
             nis: siswaData[index].nis,
             nama: siswaData[index].nama,
-            status: statusChecked ? statusChecked.value : 'Alfa', // Jika tidak dipilih, anggap Alfa
+            status: statusChecked ? statusChecked.value : 'Alfa',
             keterangan: keteranganInput ? keteranganInput.value : ''
         });
     });
@@ -243,15 +222,13 @@ async function simpanData() {
     };
 
     try {
-        const response = await fetch(SCRIPT_URL, {
+        await fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             body: JSON.stringify(dataUntukDikirim)
         });
         alert('Data absensi dan jurnal berhasil disimpan!');
-        // Reset tampilan setelah berhasil
-        jadwalSelect.value = '';
-        handleJadwalChange();
+        resetToInitialView();
 
     } catch (error) {
         console.error('Error submitting data:', error);
@@ -262,28 +239,20 @@ async function simpanData() {
     }
 }
 
-/**
- * Mencetak halaman absensi.
- */
 function cetakAbsensi() {
-    // Tambahkan style khusus untuk cetak jika diperlukan
     const style = document.createElement('style');
     style.innerHTML = `@media print {
         body * { visibility: hidden; }
         .main-container, .main-container * { visibility: visible; }
         .main-container { position: absolute; left: 0; top: 0; width: 100%; }
-        header, .action-buttons, .summary-section, footer, .keterangan-input { display: none !important; }
-        .student-table td:last-child { display: none; } /* Sembunyikan kolom keterangan saat cetak */
+        header, .action-buttons, .summary-section, footer, .keterangan-input, #info-hari-kelas, .jadwal-selector { display: none !important; }
+        .student-table td:last-child { display: none !important; }
     }`;
     document.head.appendChild(style);
     window.print();
-    document.head.removeChild(style); // Hapus style setelah cetak
+    document.head.removeChild(style);
 }
 
-
-/**
- * Mengambil nama hari dalam Bahasa Indonesia.
- */
 function getNamaHari(tanggalString) {
     const hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     const tanggal = new Date(tanggalString);
@@ -295,7 +264,6 @@ function updateNamaHari() {
 }
 
 // === 4. EVENT LISTENERS ===
-
 document.addEventListener('DOMContentLoaded', init);
 jadwalSelect.addEventListener('change', handleJadwalChange);
 tanggalInput.addEventListener('change', updateNamaHari);
@@ -304,4 +272,3 @@ btnSemuaHadir.addEventListener('click', aturSemuaHadir);
 btnReset.addEventListener('click', resetAbsensi);
 btnSimpan.addEventListener('click', simpanData);
 btnCetak.addEventListener('click', cetakAbsensi);
-
