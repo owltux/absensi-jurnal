@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekap Absensi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"> </head>
+<body>
+    <div class="main-container">
+        <header>
+            <div class="header-title">
+                <span class="header-icon">📊</span>
+                <h1>Rekapitulasi Absensi</h1>
+            </div>
+            <a href="index.html" class="btn btn-secondary">⬅️ Kembali ke Absen</a>
+        </header>
+
+        <main>
+            <div class="controls-card">
+                <div class="form-control">
+                    <label for="pilihKelasRekap">Pilih Kelas</label>
+                    <select id="pilihKelasRekap">
+                        <option value="">-- Memuat kelas... --</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label for="pilihTanggalRekap">Pilih Tanggal</label>
+                    <input type="date" id="pilihTanggalRekap">
+                </div>
+                <button id="btnTampilkanRekap" class="btn btn-primary">Tampilkan Rekap</button>
+            </div>
+
+            <div id="rekap-view" class="student-list-card" style="display: none;">
+                <div class="rekap-header">
+                    <h3 id="judulRekap">Rekap Absensi</h3>
+                    <button id="btnCetakRekap" class="btn btn-action">🖨️ Cetak</button>
+                </div>
+                <table class="student-table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>NIS</th>
+                            <th>Nama Siswa</th>
+                            <th>Status</th>
+                            <th>Jam</th>
+                            <th>Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rekap-list-body">
+                        </tbody>
+                </table>
+            </div>
+             <div id="prompt-rekap" class="prompt-card">
+                <p>Silakan pilih kelas dan tanggal untuk menampilkan rekapitulasi.</p>
+            </div>
+        </main>
+    </div>
+    <script src="rekap.js"></script>
+</body>
+</html>
