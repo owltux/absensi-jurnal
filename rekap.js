@@ -1,7 +1,7 @@
 // ===================================================================================
 // PENTING: Ganti URL di bawah ini dengan URL Web App Anda!
 // ===================================================================================
-const SCRIPT_URL = "URL_WEB_APP_ANDA_DI_SINI";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzdt7494I3nRsPj3bS_JFJWQdzwBFluFnwl-4RloWVOvJ_8DjENpiS4mNSH_U2jyEh/exec";
 // ===================================================================================
 
 // === ELEMEN DOM HALAMAN REKAP ===
