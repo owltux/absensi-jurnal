@@ -1,5 +1,5 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzdt7494I3nRsPj3bS_JFJWQdzwBFluFnwl-4RloWVOvJ_8DjENpiS4mNSH_U2jyEh/exec";
-const KUNCI_RAHASIA = "Musa!"; // HARUS SAMA PERSIS
+const KUNCI_RAHASIA = "Mus4"; // HARUS SAMA PERSIS
 
 // ... (kode rekap.js lainnya)
 
