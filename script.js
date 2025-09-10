@@ -146,3 +146,4 @@ function updateRingkasan() {
     const totalSiswa = siswaData.length;
 
     for (let i =
+
