@@ -6,6 +6,17 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzdt7494I3nRsPj3bS_
 
 
 // === 1. DEKLARASI ELEMEN DOM ===
+// ... (semua deklarasi const lainnya) ...
+const btnSimpan = document.getElementById('btnSimpan');
+const btnCetak = document.getElementById('btnCetak');
+
+// TAMBAHKAN DUA BARIS DI BAWAH INI
+const loadingSpinner = document.getElementById('loading-spinner');
+const promptAwal = document.getElementById('prompt-awal');
+
+
+let jadwalData = []; // Untuk menyimpan data jadwal dari Google Sheet
+// ... (sisa kode tetap sama) ...
 const tanggalInput = document.getElementById('tanggal');
 const jadwalSelect = document.getElementById('pilihJadwal');
 const infoHariKelas = document.getElementById('info-hari-kelas');
@@ -66,9 +77,13 @@ async function init() {
 /**
  * Fungsi yang dipanggil saat jadwal dipilih dari dropdown.
  */
+// GANTI DENGAN KODE INI
 async function handleJadwalChange() {
     const selectedJadwalId = jadwalSelect.value;
     if (!selectedJadwalId) {
+        // Jika tidak ada jadwal dipilih, tampilkan prompt awal
+        promptAwal.style.display = 'block';
+        loadingSpinner.style.display = 'none';
         initialView.style.display = 'block';
         attendanceView.style.display = 'none';
         return;
@@ -77,9 +92,15 @@ async function handleJadwalChange() {
     const selectedJadwal = jadwalData.find(j => j.id === selectedJadwalId);
     if (!selectedJadwal) return;
 
-    // Tampilkan loading & sembunyikan tampilan awal
-    initialView.style.display = 'none';
-    attendanceView.style.display = 'none'; // Sembunyikan dulu sampai data siswa siap
+    // Tampilkan loading spinner dan sembunyikan prompt awal
+    promptAwal.style.display = 'none';
+    loadingSpinner.style.display = 'block';
+    initialView.style.display = 'block'; // Pastikan kartu prompt tetap terlihat untuk spinner
+    attendanceView.style.display = 'none';
+
+    // ... sisa fungsi Anda dari sini ke bawah tetap sama ...
+    // ... (mulai dari baris: infoHariKelas.innerHTML = ...)
+}
 
     // Update info header
     infoHariKelas.innerHTML = `<span id="nama-hari">${getNamaHari(tanggalInput.value)}</span> - ✨ <span id="info-status">${selectedJadwal.kelas}</span>`;
@@ -92,7 +113,8 @@ async function handleJadwalChange() {
         if (result.status === "sukses") {
             siswaData = result.data;
             tampilkanSiswa(siswaData);
-            attendanceView.style.display = 'block'; // Tampilkan setelah semua siap
+            attendanceView.style.display = 'block'; 
+            initialView.style.display = 'none'; // Tampilkan setelah semua siap
         } else {
             alert('Gagal mengambil data siswa.');
         }
@@ -282,3 +304,4 @@ btnSemuaHadir.addEventListener('click', aturSemuaHadir);
 btnReset.addEventListener('click', resetAbsensi);
 btnSimpan.addEventListener('click', simpanData);
 btnCetak.addEventListener('click', cetakAbsensi);
+
