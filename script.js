@@ -1,175 +1,148 @@
-// === Ganti dengan URL Web App Anda ===
+// ===================================================================================
+// PENTING: Ganti URL di bawah ini dengan URL Web App dari Google Apps Script Anda!
+// ===================================================================================
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzdt7494I3nRsPj3bS_JFJWQdzwBFluFnwl-4RloWVOvJ_8DjENpiS4mNSH_U2jyEh/exec";
+// ===================================================================================
 
-// === Variabel Elemen HTML ===
-const kelasSelect = document.getElementById("pilihKelas");
-const siswaContainer = document.getElementById("daftarSiswaContainer");
-const loading = document.getElementById("loading");
-const form = document.getElementById("presensiForm");
-const submitBtn = document.getElementById("submitBtn");
-const pesanStatus = document.getElementById("pesanStatus");
-const quickActionsDiv = document.getElementById("quickActions");
-const btnPilihSemuaHadir = document.getElementById("pilihSemuaHadir");
-const jurnalSection = document.getElementById("jurnalSection");
-const infoJadwal = document.getElementById("infoJadwal"); // Elemen baru
-let jadwalTersimpan = null; // Variabel global untuk menyimpan jadwal
 
-// === Fungsi untuk mengambil daftar kelas (tetap sama) ===
-async function ambilDaftarKelas() {
+// === 1. DEKLARASI ELEMEN DOM ===
+const tanggalInput = document.getElementById('tanggal');
+const jadwalSelect = document.getElementById('pilihJadwal');
+const infoHariKelas = document.getElementById('info-hari-kelas');
+const namaHariSpan = document.getElementById('nama-hari');
+
+const initialView = document.getElementById('initial-view');
+const attendanceView = document.getElementById('attendance-view');
+
+const studentListBody = document.getElementById('student-list-body');
+const countHadir = document.getElementById('count-hadir');
+const countIzin = document.getElementById('count-izin');
+const countSakit = document.getElementById('count-sakit');
+const countTotal = document.getElementById('count-total');
+
+const kondisiKelasSelect = document.getElementById('kondisi-kelas');
+const catatanPembelajaranText = document.getElementById('catatan-pembelajaran');
+const tindakLanjutText = document.getElementById('tindak-lanjut');
+
+const btnSemuaHadir = document.getElementById('btnSemuaHadir');
+const btnReset = document.getElementById('btnReset');
+const btnSimpan = document.getElementById('btnSimpan');
+const btnCetak = document.getElementById('btnCetak');
+
+let jadwalData = []; // Untuk menyimpan data jadwal dari Google Sheet
+let siswaData = [];  // Untuk menyimpan data siswa yang sedang ditampilkan
+
+// === 2. FUNGSI UTAMA & PEMANGGILAN DATA ===
+
+/**
+ * Fungsi ini berjalan saat halaman pertama kali dimuat.
+ */
+async function init() {
+    // Set tanggal hari ini
+    tanggalInput.valueAsDate = new Date();
+    updateNamaHari();
+
+    // Ambil daftar jadwal dari Google Sheet
     try {
-        const response = await fetch(`${SCRIPT_URL}?action=getKelas`);
-        const result = await response.json();
-        if (result.status === "sukses") {
-            kelasSelect.innerHTML = '<option value="">-- Pilih Kelas --</option>';
-            result.data.forEach(kelas => {
-                if(kelas) {
-                    kelasSelect.add(new Option(kelas, kelas));
-                }
-            });
-        } else {
-            kelasSelect.innerHTML = '<option value="">Gagal memuat</option>';
-        }
-    } catch (error) {
-        console.error("Error fetching kelas:", error);
-        kelasSelect.innerHTML = '<option value="">Error</option>';
-    }
-}
-
-// === Fungsi untuk mengambil siswa & jadwal (DIPERBARUI) ===
-async function ambilDaftarSiswa(namaKelas) {
-    // Sembunyikan semua elemen saat kelas diganti
-    siswaContainer.innerHTML = '';
-    submitBtn.style.display = 'none';
-    quickActionsDiv.style.display = 'none';
-    jurnalSection.style.display = 'none';
-    infoJadwal.style.display = 'none'; 
-    jadwalTersimpan = null;
-
-    if (!namaKelas) {
-        loading.textContent = 'Pilih kelas untuk menampilkan daftar siswa.';
-        loading.style.display = 'block';
-        return;
-    }
-
-    loading.textContent = `Memuat daftar siswa untuk ${namaKelas}...`;
-    loading.style.display = 'block';
-
-    try {
-        const response = await fetch(`${SCRIPT_URL}?action=getSiswa&kelas=${encodeURIComponent(namaKelas)}`);
+        const response = await fetch(`${SCRIPT_URL}?action=getJadwal`);
         const result = await response.json();
         
         if (result.status === "sukses") {
-            loading.style.display = 'none';
-            const data = result.data;
-            
-            // Tampilkan jadwal
-            if (data.jadwal) {
-                jadwalTersimpan = data.jadwal; // Simpan jadwal
-                infoJadwal.innerHTML = `Jadwal Hari Ini: <strong>${data.jadwal.masuk} - ${data.jadwal.selesai}</strong>`;
-                infoJadwal.style.display = 'block';
-            }
-            
-            // Tampilkan siswa
-            tampilkanSiswa(data.siswa);
-            if (data.siswa.length > 0) {
-                submitBtn.style.display = 'block';
-                quickActionsDiv.style.display = 'flex';
-                jurnalSection.style.display = 'block';
-            } else {
-                loading.textContent = `Tidak ada siswa di kelas ${namaKelas}.`;
-                loading.style.display = 'block';
-            }
+            jadwalData = result.data;
+            jadwalSelect.innerHTML = '<option value="">-- Pilih Jam Mengajar --</option>';
+            jadwalData.forEach((jadwal, index) => {
+                const optionText = `Jam ke-${index + 1} (${jadwal.jamMasuk}-${jadwal.jamSelesai}) - ${jadwal.kelas}`;
+                jadwalSelect.add(new Option(optionText, jadwal.id));
+            });
         } else {
-            loading.textContent = "Gagal memuat data siswa: " + result.message;
+            jadwalSelect.innerHTML = '<option value="">Gagal memuat jadwal</option>';
         }
     } catch (error) {
-        console.error("Error fetching siswa:", error);
-        loading.textContent = "Terjadi kesalahan jaringan.";
+        console.error("Error fetching jadwal:", error);
+        jadwalSelect.innerHTML = '<option value="">Error memuat jadwal</option>';
     }
 }
 
-// === Fungsi untuk submit form (DIPERBARUI) ===
-form.addEventListener('submit', async function(e) {
-    e.preventDefault();
-    if (!jadwalTersimpan) {
-        alert("Jadwal kelas tidak ditemukan, tidak dapat mengirim absensi.");
+/**
+ * Fungsi yang dipanggil saat jadwal dipilih dari dropdown.
+ */
+async function handleJadwalChange() {
+    const selectedJadwalId = jadwalSelect.value;
+    if (!selectedJadwalId) {
+        initialView.style.display = 'block';
+        attendanceView.style.display = 'none';
         return;
     }
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Mengirim...';
-    pesanStatus.textContent = '';
-    
-    const dataPresensi = [];
-    document.querySelectorAll('.status-pilihan').forEach((pilihan, index) => {
-        dataPresensi.push({
-            nis: pilihan.dataset.nis,
-            nama: pilihan.dataset.nama,
-            status: document.querySelector(`input[name="status_${index}"]:checked`).value
-        });
-    });
+    const selectedJadwal = jadwalData.find(j => j.id === selectedJadwalId);
+    if (!selectedJadwal) return;
 
-    const dataUntukDikirim = {
-        tanggal: document.getElementById('tanggal').value,
-        kelas: kelasSelect.value,
-        refleksi: document.getElementById('refleksi').value,
-        rencana: document.getElementById('rencana').value,
-        presensi: dataPresensi,
-        jadwal: jadwalTersimpan // Kirim data jadwal yang disimpan
-    };
+    // Tampilkan loading & sembunyikan tampilan awal
+    initialView.style.display = 'none';
+    attendanceView.style.display = 'none'; // Sembunyikan dulu sampai data siswa siap
     
+    // Update info header
+    infoHariKelas.innerHTML = `<span id="nama-hari">${getNamaHari(tanggalInput.value)}</span> - ✨ <span id="info-status">${selectedJadwal.kelas}</span>`;
+
+    // Ambil daftar siswa
     try {
-        await fetch(SCRIPT_URL, {
-            method: 'POST', mode: 'no-cors',
-            body: JSON.stringify(dataUntukDikirim)
-        });
-        pesanStatus.textContent = "✓ Absensi & Jurnal berhasil dikirim!";
-        pesanStatus.style.color = "green";
-        document.getElementById('refleksi').value = '';
-        document.getElementById('rencana').value = '';
-    } catch (error) {
-        pesanStatus.textContent = "❌ Terjadi kesalahan!";
-        pesanStatus.style.color = "red";
-    } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Kirim Absensi & Jurnal';
-    }
-});
+        const response = await fetch(`${SCRIPT_URL}?action=getSiswa&kelas=${encodeURIComponent(selectedJadwal.kelas)}`);
+        const result = await response.json();
 
-// --- Fungsi dan Event Listener lain (TETAP SAMA) ---
-function tampilkanSiswa(siswaList) {
-    siswaList.forEach((siswa, index) => {
-        const siswaRow = document.createElement('div');
-        siswaRow.classList.add('siswa-row');
-        siswaRow.innerHTML = `
-            <div class="siswa-info">
-                <div class="nama">${index + 1}. ${siswa.nama}</div>
-                <div class="nis">NIS: ${siswa.nis}</div>
-            </div>
-            <div class="status-pilihan" data-nis="${siswa.nis}" data-nama="${siswa.nama}">
-                <label><input type="radio" name="status_${index}" value="Hadir" required> Hadir</label>
-                <label><input type="radio" name="status_${index}" value="Sakit"> Sakit</label>
-                <label><input type="radio" name="status_${index}" value="Izin"> Izin</label>
-                <label><input type="radio" name="status_${index}" value="Alfa"> Alfa</label>
-            </div>
-        `;
-        siswaContainer.appendChild(siswaRow);
-    });
+        if (result.status === "sukses") {
+            siswaData = result.data;
+            tampilkanSiswa(siswaData);
+            attendanceView.style.display = 'block'; // Tampilkan setelah semua siap
+        } else {
+            alert('Gagal mengambil data siswa.');
+        }
+    } catch (error) {
+        console.error("Error fetching siswa:", error);
+        alert('Terjadi kesalahan saat mengambil data siswa.');
+    }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('tanggal').valueAsDate = new Date();
-    ambilDaftarKelas();
-});
-
-kelasSelect.addEventListener('change', () => {
-    ambilDaftarSiswa(kelasSelect.value);
-});
-
-btnPilihSemuaHadir.addEventListener('click', () => {
-    document.querySelectorAll('input[type="radio"][value="Hadir"]').forEach(radio => {
-        radio.checked = true;
+/**
+ * Menampilkan daftar siswa ke dalam tabel.
+ */
+function tampilkanSiswa(siswaList) {
+    studentListBody.innerHTML = ''; // Kosongkan tabel
+    if (siswaList.length === 0) {
+        studentListBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Tidak ada siswa di kelas ini.</td></tr>';
+        return;
+    }
+    
+    siswaList.forEach((siswa, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>
+                <div>${siswa.nama}</div>
+                <small style="color: #777;">NIS: ${siswa.nis || '-'}</small>
+            </td>
+            <td><input type="radio" name="status-${index}" value="Hadir" data-index="${index}"></td>
+            <td><input type="radio" name="status-${index}" value="Izin" data-index="${index}"></td>
+            <td><input type="radio" name="status-${index}" value="Sakit" data-index="${index}"></td>
+            <td><input type="text" class="keterangan-input" placeholder="Keterangan..."></td>
+        `;
+        studentListBody.appendChild(row);
     });
-});
 
+    // Tambahkan event listener ke semua radio button yang baru dibuat
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', updateRingkasan);
+    });
+    
+    updateRingkasan(); // Inisialisasi ringkasan
+}
 
+// === 3. FUNGSI INTERAKTIF & PEMBANTU ===
+
+/**
+ * Menghitung dan memperbarui ringkasan kehadiran.
+ */
+function updateRingkasan() {
+    let hadir = 0, izin = 0, sakit = 0;
+    const totalSiswa = siswaData.length;
+
+    for (let i =
