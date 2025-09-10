@@ -1,6 +1,8 @@
 // === SISTEM PASSWORD SEDERHANA ===
-const PASSWORD_BENAR = "Mus4"; // Ganti dengan password yang mudah Anda ingat
+// Ganti password ini sesuai keinginan Anda
+const PASSWORD_BENAR = "Mus4"; 
 
+// Minta password saat halaman dimuat
 const passwordDariPengguna = prompt("Masukkan Password untuk Mengakses Aplikasi:");
 
 if (passwordDariPengguna !== PASSWORD_BENAR) {
@@ -8,7 +10,6 @@ if (passwordDariPengguna !== PASSWORD_BENAR) {
     document.body.innerHTML = '<h1 style="text-align:center; margin-top: 50px;">AKSES DITOLAK</h1>';
     throw new Error("Akses ditolak karena password salah.");
 }
-
 // ===================================================================================
 // PENTING: Ganti URL dan KUNCI RAHASIA di bawah ini
 // ===================================================================================
@@ -16,52 +17,273 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzdt7494I3nRsPj3bS_
 const KUNCI_RAHASIA = "Mus4"; // HARUS SAMA PERSIS dengan di Google Apps Script
 // ===================================================================================
 
-// === DEKLARASI ELEMEN DOM ===
-// ... (Salin seluruh bagian DEKLARASI ELEMEN DOM dari kode Anda sebelumnya)
+
+// === 1. DEKLARASI ELEMEN DOM ===
 const tanggalInput = document.getElementById('tanggal');
-// ... dst ...
+const jadwalSelect = document.getElementById('pilihJadwal');
+const infoHariKelas = document.getElementById('info-hari-kelas');
+const namaHariSpan = document.getElementById('nama-hari');
 
-// === FUNGSI UTAMA & PEMANGGILAN DATA ===
+const initialView = document.getElementById('initial-view');
+const attendanceView = document.getElementById('attendance-view');
+
+const loadingSpinner = document.getElementById('loading-spinner');
+const promptAwal = document.getElementById('prompt-awal');
+
+const studentListBody = document.getElementById('student-list-body');
+const countHadir = document.getElementById('count-hadir');
+const countIzin = document.getElementById('count-izin');
+const countSakit = document.getElementById('count-sakit');
+const countTotal = document.getElementById('count-total');
+
+const kondisiKelasSelect = document.getElementById('kondisi-kelas');
+const catatanPembelajaranText = document.getElementById('catatan-pembelajaran');
+const tindakLanjutText = document.getElementById('tindak-lanjut');
+
+const btnSemuaHadir = document.getElementById('btnSemuaHadir');
+const btnReset = document.getElementById('btnReset');
+const btnSimpan = document.getElementById('btnSimpan');
+const btnCetak = document.getElementById('btnCetak');
+
+let jadwalData = []; // Untuk menyimpan data jadwal dari Google Sheet
+let siswaData = [];  // Untuk menyimpan data siswa yang sedang ditampilkan
+
+// === 2. FUNGSI UTAMA & PEMANGGILAN DATA ===
+
+/**
+ * Fungsi ini berjalan saat halaman pertama kali dimuat (setelah password benar).
+ */
 async function init() {
-    // ... (Isi fungsi init tetap sama, TAPI UBAH FETCH-NYA)
+    tanggalInput.valueAsDate = new Date();
+    updateNamaHari();
+
     try {
-        // UBAH BARIS INI: Tambahkan Kunci Rahasia
         const response = await fetch(`${SCRIPT_URL}?action=getJadwal&kunci=${KUNCI_RAHASIA}`);
-        // ... sisa fungsi init ...
-    } catch (error) { /* ... */ }
+        const result = await response.json();
+        
+        if (result.status === "sukses") {
+            jadwalData = result.data;
+            jadwalSelect.innerHTML = '<option value="">-- Pilih Jam Mengajar --</option>';
+            jadwalData.forEach((jadwal, index) => {
+                const optionText = `Jam ke-${index + 1} (${jadwal.jamMasuk}-${jadwal.jamSelesai}) - ${jadwal.kelas}`;
+                jadwalSelect.add(new Option(optionText, jadwal.id));
+            });
+        } else {
+            alert(`Gagal memuat jadwal: ${result.message}`);
+            jadwalSelect.innerHTML = `<option value="">${result.message}</option>`;
+        }
+    } catch (error) {
+        console.error("Error fetching jadwal:", error);
+        jadwalSelect.innerHTML = '<option value="">Error memuat jadwal</option>';
+    }
 }
 
+/**
+ * Fungsi yang dipanggil saat jadwal dipilih dari dropdown.
+ */
 async function handleJadwalChange() {
-    // ... (Isi fungsi handleJadwalChange tetap sama, TAPI UBAH FETCH-NYA)
+    const selectedJadwalId = jadwalSelect.value;
+    if (!selectedJadwalId) {
+        resetToInitialView(true); // Reset dengan lembut
+        return;
+    }
+
+    const selectedJadwal = jadwalData.find(j => j.id === selectedJadwalId);
+    if (!selectedJadwal) return;
+
+    // Tampilkan loading spinner
+    promptAwal.style.display = 'none';
+    loadingSpinner.style.display = 'block';
+    initialView.style.display = 'block';
+    attendanceView.style.display = 'none';
+    
+    infoHariKelas.innerHTML = `<span id="nama-hari">${getNamaHari(tanggalInput.value)}</span> - ✨ <span id="info-status">${selectedJadwal.kelas}</span>`;
+
     try {
-        // UBAH BARIS INI: Tambahkan Kunci Rahasia
         const response = await fetch(`${SCRIPT_URL}?action=getSiswa&kelas=${encodeURIComponent(selectedJadwal.kelas)}&kunci=${KUNCI_RAHASIA}`);
-        // ... sisa fungsi handleJadwalChange ...
-    } catch (error) { /* ... */ }
+        const result = await response.json();
+
+        if (result.status === "sukses") {
+            siswaData = result.data;
+            tampilkanSiswa(siswaData);
+            attendanceView.style.display = 'block';
+            initialView.style.display = 'none'; // Sembunyikan kartu prompt setelah selesai
+        } else {
+            alert(`Gagal mengambil data siswa: ${result.message}`);
+            resetToInitialView(false);
+        }
+    } catch (error) {
+        console.error("Error fetching siswa:", error);
+        alert('Terjadi kesalahan saat mengambil data siswa.');
+        resetToInitialView(false);
+    }
 }
 
-// === FUNGSI PENYIMPANAN DATA ===
-async function simpanData() {
-    // ... (Isi fungsi simpanData tetap sama, TAPI UBAH OBJEK DATANYA)
-    const dataUntukDikirim = {
-        kunci: KUNCI_RAHASIA, // <-- TAMBAHKAN BARIS INI
-        tanggal: tanggalInput.value,
-        // ... sisa data lainnya
-    };
+/**
+ * Menampilkan daftar siswa ke dalam tabel.
+ */
+function tampilkanSiswa(siswaList) {
+    studentListBody.innerHTML = '';
+    if (siswaList.length === 0) {
+        studentListBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Tidak ada siswa di kelas ini.</td></tr>';
+        countTotal.textContent = 0;
+        return;
+    }
+    
+    siswaList.forEach((siswa, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>
+                <div>${siswa.nama}</div>
+                <small style="color: #777;">NIS: ${siswa.nis || '-'}</small>
+            </td>
+            <td><input type="radio" name="status-${index}" value="Hadir" data-index="${index}"></td>
+            <td><input type="radio" name="status-${index}" value="Izin" data-index="${index}"></td>
+            <td><input type="radio" name="status-${index}" value="Sakit" data-index="${index}"></td>
+            <td><input type="text" class="keterangan-input" placeholder="Keterangan..."></td>
+        `;
+        studentListBody.appendChild(row);
+    });
 
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', updateRingkasan);
+    });
+    
+    updateRingkasan();
+}
+
+// === 3. FUNGSI INTERAKTIF & PEMBANTU ===
+
+function resetToInitialView(softReset = false) {
+    if(!softReset){
+        jadwalSelect.value = '';
+    }
+    promptAwal.style.display = 'block';
+    loadingSpinner.style.display = 'none';
+    initialView.style.display = 'block';
+    attendanceView.style.display = 'none';
+    infoHariKelas.innerHTML = `<span id="nama-hari">${getNamaHari(tanggalInput.value)}</span> - <span id="info-status">Pilih Jam Mengajar</span>`;
+}
+
+function updateRingkasan() {
+    let hadir = 0, izin = 0, sakit = 0;
+    const totalSiswa = siswaData.length;
+
+    for (let i = 0; i < totalSiswa; i++) {
+        const statusChecked = document.querySelector(`input[name="status-${i}"]:checked`);
+        if (statusChecked) {
+            switch (statusChecked.value) {
+                case 'Hadir': hadir++; break;
+                case 'Izin': izin++; break;
+                case 'Sakit': sakit++; break;
+            }
+        }
+    }
+    countHadir.textContent = hadir;
+    countIzin.textContent = izin;
+    countSakit.textContent = sakit;
+    countTotal.textContent = totalSiswa;
+}
+
+function aturSemuaHadir() {
+    document.querySelectorAll('input[type="radio"][value="Hadir"]').forEach(radio => {
+        radio.checked = true;
+    });
+    updateRingkasan();
+}
+
+function resetAbsensi() {
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.checked = false;
+    });
+    document.querySelectorAll('.keterangan-input').forEach(input => {
+        input.value = '';
+    });
+    updateRingkasan();
+}
+
+async function simpanData() {
+    btnSimpan.disabled = true;
+    btnSimpan.textContent = 'Menyimpan...';
+
+    const selectedJadwal = jadwalData.find(j => j.id === jadwalSelect.value);
+    
+    const dataPresensi = [];
+    studentListBody.querySelectorAll('tr').forEach((row, index) => {
+        const statusChecked = row.querySelector(`input[name="status-${index}"]:checked`);
+        const keteranganInput = row.querySelector('.keterangan-input');
+        
+        dataPresensi.push({
+            nis: siswaData[index].nis,
+            nama: siswaData[index].nama,
+            status: statusChecked ? statusChecked.value : 'Alfa',
+            keterangan: keteranganInput ? keteranganInput.value : ''
+        });
+    });
+
+    const dataUntukDikirim = {
+        kunci: KUNCI_RAHASIA,
+        tanggal: tanggalInput.value,
+        kelas: selectedJadwal.kelas,
+        jadwal: {
+            masuk: selectedJadwal.jamMasuk,
+            selesai: selectedJadwal.jamSelesai
+        },
+        kondisiKelas: kondisiKelasSelect.value,
+        refleksi: catatanPembelajaranText.value,
+        rencana: tindakLanjutText.value,
+        presensi: dataPresensi
+    };
+    
     try {
-        // Fetch di sini tidak perlu diubah
         await fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'no-cors',
             body: JSON.stringify(dataUntukDikirim)
         });
-        // ... sisa fungsi simpanData ...
-    } catch (error) { /* ... */ }
+        alert('Data absensi dan jurnal berhasil disimpan!');
+        resetToInitialView(false);
+
+    } catch (error) {
+        console.error('Error submitting data:', error);
+        alert('Gagal menyimpan data. Silakan coba lagi.');
+    } finally {
+        btnSimpan.disabled = false;
+        btnSimpan.textContent = '💾 Simpan Data';
+    }
 }
 
-// ... (Salin semua fungsi Anda yang lain dan bagian EVENT LISTENERS ke sini)
-// tampilkanSiswa, updateRingkasan, aturSemuaHadir, resetAbsensi, cetakAbsensi, dll.
+function cetakAbsensi() {
+    const style = document.createElement('style');
+    style.innerHTML = `@media print {
+        body * { visibility: hidden; }
+        .main-container, .main-container * { visibility: visible; }
+        .main-container { position: absolute; left: 0; top: 0; width: 100%; }
+        header, .action-buttons, .summary-section, footer, .keterangan-input, #info-hari-kelas, .jadwal-selector { display: none !important; }
+        .student-table td:last-child { display: none !important; }
+    }`;
+    document.head.appendChild(style);
+    window.print();
+    document.head.removeChild(style);
+}
 
+function getNamaHari(tanggalString) {
+    const hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const tanggal = new Date(tanggalString);
+    return hari[tanggal.getDay()];
+}
 
+function updateNamaHari() {
+    namaHariSpan.textContent = getNamaHari(tanggalInput.value);
+}
 
+// === 4. EVENT LISTENERS ===
+document.addEventListener('DOMContentLoaded', init);
+jadwalSelect.addEventListener('change', handleJadwalChange);
+tanggalInput.addEventListener('change', updateNamaHari);
+
+btnSemuaHadir.addEventListener('click', aturSemuaHadir);
+btnReset.addEventListener('click', resetAbsensi);
+btnSimpan.addEventListener('click', simpanData);
+btnCetak.addEventListener('click', cetakAbsensi);
