@@ -1,5 +1,5 @@
 // === SISTEM PASSWORD SEDERHANA ===
-const PASSWORD_BENAR = "Musa!"; // Ganti dengan password yang mudah Anda ingat
+const PASSWORD_BENAR = "Mus4"; // Ganti dengan password yang mudah Anda ingat
 
 const passwordDariPengguna = prompt("Masukkan Password untuk Mengakses Aplikasi:");
 
@@ -13,7 +13,7 @@ if (passwordDariPengguna !== PASSWORD_BENAR) {
 // PENTING: Ganti URL dan KUNCI RAHASIA di bawah ini
 // ===================================================================================
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzdt7494I3nRsPj3bS_JFJWQdzwBFluFnwl-4RloWVOvJ_8DjENpiS4mNSH_U2jyEh/exec";
-const KUNCI_RAHASIA = "Musa!"; // HARUS SAMA PERSIS dengan di Google Apps Script
+const KUNCI_RAHASIA = "Mus4"; // HARUS SAMA PERSIS dengan di Google Apps Script
 // ===================================================================================
 
 // === DEKLARASI ELEMEN DOM ===
@@ -62,5 +62,6 @@ async function simpanData() {
 
 // ... (Salin semua fungsi Anda yang lain dan bagian EVENT LISTENERS ke sini)
 // tampilkanSiswa, updateRingkasan, aturSemuaHadir, resetAbsensi, cetakAbsensi, dll.
+
 
 
