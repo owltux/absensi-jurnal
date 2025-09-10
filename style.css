@@ -227,3 +227,15 @@ footer {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+/* ... CSS Anda yang sudah ada ... */
+
+/* Gaya untuk Halaman Rekap */
+.rekap-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.rekap-header h3 {
+    margin: 0;
+}
