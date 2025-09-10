@@ -209,3 +209,21 @@ footer {
     .action-buttons { flex-direction: column; }
     .left-actions, .right-actions { justify-content: space-between; }
 }
+/* === Gaya untuk Loading Spinner === */
+#loading-spinner {
+    text-align: center;
+    padding: 50px 20px;
+}
+.spinner {
+    border: 6px solid var(--bg-light);
+    border-top: 6px solid var(--primary-color);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px auto;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
