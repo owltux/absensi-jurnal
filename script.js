@@ -46,7 +46,7 @@ async function init() {
     try {
         const response = await fetch(`${SCRIPT_URL}?action=getJadwal`);
         const result = await response.json();
-        
+
         if (result.status === "sukses") {
             jadwalData = result.data;
             jadwalSelect.innerHTML = '<option value="">-- Pilih Jam Mengajar --</option>';
@@ -80,7 +80,7 @@ async function handleJadwalChange() {
     // Tampilkan loading & sembunyikan tampilan awal
     initialView.style.display = 'none';
     attendanceView.style.display = 'none'; // Sembunyikan dulu sampai data siswa siap
-    
+
     // Update info header
     infoHariKelas.innerHTML = `<span id="nama-hari">${getNamaHari(tanggalInput.value)}</span> - ✨ <span id="info-status">${selectedJadwal.kelas}</span>`;
 
@@ -111,7 +111,7 @@ function tampilkanSiswa(siswaList) {
         studentListBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Tidak ada siswa di kelas ini.</td></tr>';
         return;
     }
-    
+
     siswaList.forEach((siswa, index) => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -132,7 +132,7 @@ function tampilkanSiswa(siswaList) {
     document.querySelectorAll('input[type="radio"]').forEach(radio => {
         radio.addEventListener('change', updateRingkasan);
     });
-    
+
     updateRingkasan(); // Inisialisasi ringkasan
 }
 
@@ -145,5 +145,140 @@ function updateRingkasan() {
     let hadir = 0, izin = 0, sakit = 0;
     const totalSiswa = siswaData.length;
 
-    for (let i =
+    for (let i = 0; i < totalSiswa; i++) {
+        const statusChecked = document.querySelector(`input[name="status-${i}"]:checked`);
+        if (statusChecked) {
+            switch (statusChecked.value) {
+                case 'Hadir': hadir++; break;
+                case 'Izin': izin++; break;
+                case 'Sakit': sakit++; break;
+            }
+        }
+    }
 
+    countHadir.textContent = hadir;
+    countIzin.textContent = izin;
+    countSakit.textContent = sakit;
+    countTotal.textContent = totalSiswa;
+}
+
+/**
+ * Mengatur semua siswa menjadi "Hadir".
+ */
+function aturSemuaHadir() {
+    document.querySelectorAll('input[type="radio"][value="Hadir"]').forEach(radio => {
+        radio.checked = true;
+    });
+    updateRingkasan();
+}
+
+/**
+ * Mereset semua pilihan absensi.
+ */
+function resetAbsensi() {
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.checked = false;
+    });
+    document.querySelectorAll('.keterangan-input').forEach(input => {
+        input.value = '';
+    });
+    updateRingkasan();
+}
+
+/**
+ * Mengumpulkan semua data dan mengirimkannya ke Google Sheet.
+ */
+async function simpanData() {
+    btnSimpan.disabled = true;
+    btnSimpan.textContent = 'Menyimpan...';
+
+    const selectedJadwal = jadwalData.find(j => j.id === jadwalSelect.value);
+
+    const dataPresensi = [];
+    studentListBody.querySelectorAll('tr').forEach((row, index) => {
+        const statusChecked = row.querySelector(`input[name="status-${index}"]:checked`);
+        const keteranganInput = row.querySelector('.keterangan-input');
+
+        dataPresensi.push({
+            nis: siswaData[index].nis,
+            nama: siswaData[index].nama,
+            status: statusChecked ? statusChecked.value : 'Alfa', // Jika tidak dipilih, anggap Alfa
+            keterangan: keteranganInput ? keteranganInput.value : ''
+        });
+    });
+
+    const dataUntukDikirim = {
+        tanggal: tanggalInput.value,
+        kelas: selectedJadwal.kelas,
+        jadwal: {
+            masuk: selectedJadwal.jamMasuk,
+            selesai: selectedJadwal.jamSelesai
+        },
+        kondisiKelas: kondisiKelasSelect.value,
+        refleksi: catatanPembelajaranText.value,
+        rencana: tindakLanjutText.value,
+        presensi: dataPresensi
+    };
+
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify(dataUntukDikirim)
+        });
+        alert('Data absensi dan jurnal berhasil disimpan!');
+        // Reset tampilan setelah berhasil
+        jadwalSelect.value = '';
+        handleJadwalChange();
+
+    } catch (error) {
+        console.error('Error submitting data:', error);
+        alert('Gagal menyimpan data. Silakan coba lagi.');
+    } finally {
+        btnSimpan.disabled = false;
+        btnSimpan.textContent = '💾 Simpan Data';
+    }
+}
+
+/**
+ * Mencetak halaman absensi.
+ */
+function cetakAbsensi() {
+    // Tambahkan style khusus untuk cetak jika diperlukan
+    const style = document.createElement('style');
+    style.innerHTML = `@media print {
+        body * { visibility: hidden; }
+        .main-container, .main-container * { visibility: visible; }
+        .main-container { position: absolute; left: 0; top: 0; width: 100%; }
+        header, .action-buttons, .summary-section, footer, .keterangan-input { display: none !important; }
+        .student-table td:last-child { display: none; } /* Sembunyikan kolom keterangan saat cetak */
+    }`;
+    document.head.appendChild(style);
+    window.print();
+    document.head.removeChild(style); // Hapus style setelah cetak
+}
+
+
+/**
+ * Mengambil nama hari dalam Bahasa Indonesia.
+ */
+function getNamaHari(tanggalString) {
+    const hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const tanggal = new Date(tanggalString);
+    return hari[tanggal.getDay()];
+}
+
+function updateNamaHari() {
+    namaHariSpan.textContent = getNamaHari(tanggalInput.value);
+}
+
+// === 4. EVENT LISTENERS ===
+
+document.addEventListener('DOMContentLoaded', init);
+jadwalSelect.addEventListener('change', handleJadwalChange);
+tanggalInput.addEventListener('change', updateNamaHari);
+
+btnSemuaHadir.addEventListener('click', aturSemuaHadir);
+btnReset.addEventListener('click', resetAbsensi);
+btnSimpan.addEventListener('click', simpanData);
+btnCetak.addEventListener('click', cetakAbsensi);
