@@ -1,5 +1,5 @@
 // === SISTEM PASSWORD SEDERHANA ===
-const PASSWORD_BENAR = "Musa!12345"; // Ganti dengan password yang mudah Anda ingat
+const PASSWORD_BENAR = "Musa!"; // Ganti dengan password yang mudah Anda ingat
 
 const passwordDariPengguna = prompt("Masukkan Password untuk Mengakses Aplikasi:");
 
@@ -62,4 +62,5 @@ async function simpanData() {
 
 // ... (Salin semua fungsi Anda yang lain dan bagian EVENT LISTENERS ke sini)
 // tampilkanSiswa, updateRingkasan, aturSemuaHadir, resetAbsensi, cetakAbsensi, dll.
+
 
