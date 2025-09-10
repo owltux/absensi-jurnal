@@ -2,6 +2,7 @@
 // PENTING: Ganti URL di bawah ini dengan URL Web App dari Google Apps Script Anda!
 // ===================================================================================
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxzdt7494I3nRsPj3bS_JFJWQdzwBFluFnwl-4RloWVOvJ_8DjENpiS4mNSH_U2jyEh/exec";
+const KUNCI_RAHASIA = "Musa!"; // HARUS SAMA PERSIS DENGAN DI APPS SCRIPT
 // ===================================================================================
 
 
@@ -46,7 +47,7 @@ async function init() {
     updateNamaHari();
 
     try {
-        const response = await fetch(`${SCRIPT_URL}?action=getJadwal`);
+        const response = await fetch(`${SCRIPT_URL}?action=getJadwal&kunci=${KUNCI_RAHASIA}`);
         const result = await response.json();
 
         if (result.status === "sukses") {
@@ -209,6 +210,7 @@ async function simpanData() {
     });
 
     const dataUntukDikirim = {
+        kunci: KUNCI_RAHASIA,
         tanggal: tanggalInput.value,
         kelas: selectedJadwal.kelas,
         jadwal: {
@@ -272,3 +274,4 @@ btnSemuaHadir.addEventListener('click', aturSemuaHadir);
 btnReset.addEventListener('click', resetAbsensi);
 btnSimpan.addEventListener('click', simpanData);
 btnCetak.addEventListener('click', cetakAbsensi);
+
